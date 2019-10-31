@@ -219,8 +219,8 @@ model = FCN32( 3 ,  input_height=224, input_width=224, vgg_level=3)
 smooth = 1.
 model.compile(optimizer='adam', loss="categorical_crossentropy", metrics=[tversky_loss,dice_coef,'accuracy'])
 tb = TensorBoard(log_dir='logs', write_graph=True)
-mc = ModelCheckpoint(mode='max', filepath='/valohai/outputs/model_checkpoint.h5', monitor='accuracy', save_best_only='True', save_weights_only='True', verbose=1)
-es = EarlyStopping(mode='max', monitor='val_accuracy', patience=50, verbose=1)
+mc = ModelCheckpoint(mode='max', filepath='/valohai/outputs/model_checkpoint.h5', monitor='val_acc', save_best_only='True', save_weights_only='True', verbose=1)
+es = EarlyStopping(mode='max', monitor='val_acc', patience=50, verbose=1)
 callbacks = [tb, mc, es]
 
 batch_size = 5
