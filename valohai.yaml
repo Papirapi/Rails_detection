@@ -1,0 +1,75 @@
+---
+
+- step:
+    name: Train model
+    image: tensorflow/tensorflow:1.14.0-gpu-py3
+    command: 
+      - pip install Pillow
+      - unzip /valohai/inputs/training-set-images/train_images.zip -d /valohai/inputs/training-set-images
+      - unzip /valohai/inputs/training-set-labels/train_image_segmentations.zip -d /valohai/inputs/training-set-labels
+      - unzip /valohai/inputs/pretrained_weights/pretrained_weights.zip -d /valohai/inputs/pretrained_weights
+      - python3 train.py
+    parameters:
+      - name: train_steps
+        pass-as: -train_steps={v}
+        description: Number of steps to run the trainer
+        type: integer
+        default: 119
+      - name: val_steps
+        pass-as: --val_steps={v}
+        description: Number of steps to run the val
+        type: integer
+        default: 30
+      - name: learning_rate
+        pass-as: --learning_rate={v}
+        description: Initial learning rate
+        type: float
+        default: 0.001
+      - name: dropout
+        pass-as: --dropout={v}
+        description: Keep probability for training dropout
+        type: float
+        default: 0.5
+      - name: batch_size
+        pass-as: --batch_size={v}
+        description: Training batch size (larger batches are usually more efficient on GPUs)
+        type: integer
+        default: 5
+    inputs:
+      - name: training-set-images
+        default: datum://016e2125-3085-c938-92b6-892ebcd33e1f
+      - name: training-set-labels
+        default: datum://016e2121-133f-f3dc-c0ef-46275b08b111
+      - name: label_colors
+        default: datum://016e2135-2293-880c-109d-4e458cda23b5
+      - name: pretrained_weights
+        default: datum://016e211e-b38d-c16e-0247-27c2dbb07d53  
+
+
+- step:
+    name: Worker environment check
+    image: tensorflow/tensorflow:1.14.0-gpu-py3
+    command:
+      - pwd
+      - ls -la
+      - nvidia-smi
+      - python --version
+      - nvcc --version | grep release
+      - cat /usr/include/x86_64-linux-gnu/cudnn_v*.h | grep CUDNN_MAJOR -A 2
+
+- endpoint:
+    name: greet
+    image: python:3.6
+    port: 8000
+    server-command: python -m wsgiref.simple_server
+    description: test the serving environment
+
+- endpoint:
+    name: detect-rails
+    description: detect rails from image inputs ("file" parameter)
+    image: tensorflow/tensorflow:1.14.0-py3
+    wsgi: predict_wsgi:predict_wsgi
+    files:
+      - name: model
+        description: Model output file from TensorFlow
+        path: my_model.h5
