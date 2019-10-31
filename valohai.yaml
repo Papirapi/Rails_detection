@@ -4,6 +4,7 @@
     name: Train model
     image: tensorflow/tensorflow:1.14.0-gpu-py3
     command: 
+      - pip install --disable-pip-version-check --quiet -r requirements.txt
       - unzip /valohai/inputs/training-set-images/train_images.zip -d /valohai/inputs/training-set-images
       - unzip /valohai/inputs/training-set-labels/train_image_segmentations.zip -d /valohai/inputs/training-set-labels
       - unzip /valohai/inputs/pretrained_weights/pretrained_weights.zip -d /valohai/inputs/pretrained_weights
