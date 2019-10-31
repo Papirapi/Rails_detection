@@ -1,0 +1,86 @@
+---
+
+- step:
+    name: Preprocess dataset (RAILS)
+    image: tensorflow/tensorflow:1.14.0-gpu-py3
+    command: 
+      - unzip train_images.zip
+      - unzip train_image_segmentations.zip
+      - python3 Preprocess.py
+    inputs:
+      - name: training-set-images
+        default: https://s3.eu-west-1.amazonaws.com/valohai-data/data/01DQW/01DQWFA6KTT0Z49VGB22NM29M8/upload/train_images.zip
+      - name: training-set-labels
+        default: https://s3.eu-west-1.amazonaws.com/valohai-data/data/01DQW/01DQWFA6KTT0Z49VGB22NM29M8/upload/train_image_segmentations.zip
+      - name: label_colors
+        default: https://s3.eu-west-1.amazonaws.com/valohai-data/data/01DQW/01DQWFA6KTT0Z49VGB22NM29M8/upload/label_colors.txt
+
+
+- step:
+    name: Train model
+    image: tensorflow/tensorflow:1.14.0-gpu-py3
+    command: python train.py {parameters}
+    parameters:
+      - name: train_steps
+        pass-as: -train_steps={v}
+        description: Number of steps to run the trainer
+        type: integer
+        default: 119
+      - name: val_steps
+        pass-as: --val_steps={v}
+        description: Number of steps to run the val
+        type: integer
+        default: 30
+      - name: learning_rate
+        pass-as: --learning_rate={v}
+        description: Initial learning rate
+        type: float
+        default: 0.001
+      - name: dropout
+        pass-as: --dropout={v}
+        description: Keep probability for training dropout
+        type: float
+        default: 0.5
+      - name: batch_size
+        pass-as: --batch_size={v}
+        description: Training batch size (larger batches are usually more efficient on GPUs)
+        type: integer
+        default: 5
+    inputs:
+      - name: training-set-images
+        default: https://valohaidemo.blob.core.windows.net/mnist/train-images-idx3-ubyte.gz
+      - name: training-set-labels
+        default: https://valohaidemo.blob.core.windows.net/mnist/train-labels-idx1-ubyte.gz
+      - name: val-set-images
+        default: https://valohaidemo.blob.core.windows.net/mnist/t10k-images-idx3-ubyte.gz
+      - name: val-set-labels
+        default: https://valohaidemo.blob.core.windows.net/mnist/t10k-labels-idx1-ubyte.gz
+
+
+- step:
+    name: Worker environment check
+    image: tensorflow/tensorflow:1.14.0-gpu-py3
+    command:
+      - pwd
+      - ls -la
+      - nvidia-smi
+      - python --version
+      - nvcc --version | grep release
+      - cat /usr/include/x86_64-linux-gnu/cudnn_v*.h | grep CUDNN_MAJOR -A 2
+
+- endpoint:
+    name: greet
+    image: python:3.6
+    port: 8000
+    server-command: python -m wsgiref.simple_server
+    description: test the serving environment
+
+- endpoint:
+    name: detect-rails
+    description: detect rails from image inputs ("file" parameter)
+    image: tensorflow/tensorflow:1.14.0-py3
+    wsgi: predict_wsgi:predict_wsgi
+    files:
+      - name: model
+        description: Model output file from TensorFlow
+        path: my_model.h5
