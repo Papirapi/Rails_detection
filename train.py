@@ -229,7 +229,7 @@ print('steps_per_epoch')
 validation_steps = (float((round(0.2*len(frames_list)))) / float(batch_size))
 print('validation_steps')
 
-num_epochs = 50
+num_epochs = 100
 
 # Train model
 result = model.fit_generator(TrainAugmentGenerator(), steps_per_epoch=steps_per_epoch ,
