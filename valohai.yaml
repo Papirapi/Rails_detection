@@ -37,9 +37,9 @@
         default: 5
     inputs:
       - name: training-set-images
-        default: datum://016e2125-3085-c938-92b6-892ebcd33e1f
+        default: datum://016e4682-30c8-e98d-acc8-a9c14c80fd6d
       - name: training-set-labels
-        default: datum://016e2121-133f-f3dc-c0ef-46275b08b111
+        default: datum://016e4682-5ed2-b0d6-8355-ea79ee4ca360
       - name: label_colors
         default: datum://016e2135-2293-880c-109d-4e458cda23b5
       - name: pretrained_weights
